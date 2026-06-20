@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Fusion Portfolio</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            color: #fff; 
+            padding: 20px;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        header { text-align: center; padding: 50px 0 30px 0; }
+        
+        /* Premium Glowing Brand Name */
+        h1 { 
+            font-size: 3rem; 
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 25px; 
+            background: linear-gradient(to right, #00f2fe, #4facfe, #00adb5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 0px 30px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Liquid Glass Skin Navigation Filter Buttons */
+        .filter-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-color: #00f2fe;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Glassmorphism Cards Grid */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 30px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+
+        .card { 
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .card:hover { 
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(0, 242, 254, 0.3);
+            box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.15);
+        }
+
+        .card img { width: 100%; height: 230px; object-fit: cover; background: rgba(255,255,255,0.02); }
+        
+        .card-content { padding: 22px; }
+        
+        .card-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #00f2fe;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .card-title { font-size: 1.35rem; margin-bottom: 8px; color: #fff; font-weight: 700; }
+        .card-desc { color: #b4b6c4; font-size: 0.95rem; line-height: 1.6; }
+        .loading { text-align: center; color: #888; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Pixel Fusion</h1>
+        
+        <div class="filter-nav">
+            <button class="filter-btn active" onclick="filterSelection('all')">✨ All Work</button>
+            <button class="filter-btn" onclick="filterSelection('logo')">🎨 Logo</button>
+            <button class="filter-btn" onclick="filterSelection('thumbnail')">🖼️ Thumbnail</button>
+            <button class="filter-btn" onclick="filterSelection('video')">🎬 Video</button>
+            <button class="filter-btn" onclick="filterSelection('website')">💻 Website</button>
+        </div>
+    </header>
+
+    <div class="loading" id="loader">Syncing showcase layout...</div>
+    <div class="grid" id="portfolio-grid"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyADd_THieNiwl-aRIiFpURkg0inlwZPQjY",
+            authDomain: "pixel-fusion-c7400.firebaseapp.com",
+            projectId: "pixel-fusion-c7400",
+            appId: "1:738589690133:web:744ad4c309e2788303c11c"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allProjects = [];
+
+        async function loadPortfolio() {
+            const grid = document.getElementById('portfolio-grid');
+            const loader = document.getElementById('loader');
+            try {
+                const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                loader.style.display = 'none';
+                
+                if(snap.empty) {
+                    grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#666;">No designs uploaded yet.</p>';
+                    return;
+                }
+
+                snap.forEach((doc) => {
+                    allProjects.push({ id: doc.id, ...doc.data() });
+                });
+
+                renderCards(allProjects);
+            } catch (e) { loader.innerText = "Connection error."; }
+        }
+
+        window.renderCards = function(projectsToRender) {
+            const grid = document.getElementById('portfolio-grid');
+            grid.innerHTML = "";
+            projectsToRender.forEach((data) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${data.imageUrl}" alt="${data.title}">
+                    <div class="card-content">
+                        <div class="card-category">${data.category || 'Work'}</div>
+                        <h3 class="card-title">${data.title}</h3>
+                        <p class="card-desc">${data.description}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.filterSelection = function(category) {
+            // Manage Active Button States
+            const btns = document.getElementsByClassName("filter-btn");
+            for (let i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+                if(btns[i].innerText.toLowerCase().includes(category)) {
+                    btns[i].classList.add("active");
+                } else if (category === 'all' && i === 0) {
+                    btns[i].classList.add("active");
+                }
+            }
+
+            if(category === 'all') {
+                renderCards(allProjects);
+            } else {
+                const filtered = allProjects.filter(p => p.category && p.category.toLowerCase() === category);
+                const grid = document.getElementById('portfolio-grid');
+                if(filtered.length === 0) {
+                    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#888; padding:40px;">No items in ${category} category yet.</p>`;
+                } else {
+                    renderCards(filtered);
+                }
+            }
+        }
+
+        loadPortfolio();
+    </script>
+</body>
+</html>
