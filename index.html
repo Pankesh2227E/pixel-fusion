@@ -17,7 +17,6 @@
 
         header { text-align: center; padding: 50px 0 30px 0; }
         
-        /* Premium Glowing Brand Name */
         h1 { 
             font-size: 3rem; 
             font-weight: 800;
@@ -29,7 +28,6 @@
             text-shadow: 0px 0px 30px rgba(79, 172, 254, 0.3);
         }
 
-        /* Liquid Glass Skin Navigation Filter Buttons */
         .filter-nav {
             display: flex;
             justify-content: center;
@@ -61,7 +59,6 @@
             transform: translateY(-2px);
         }
 
-        /* Glassmorphism Cards Grid */
         .grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -79,6 +76,7 @@
             overflow: hidden; 
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
         }
 
         .card:hover { 
@@ -87,7 +85,46 @@
             box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.15);
         }
 
-        .card img { width: 100%; height: 230px; object-fit: cover; background: rgba(255,255,255,0.02); }
+        .card-media-link { display: block; position: relative; }
+        .card img { width: 100%; height: 230px; object-fit: cover; background: rgba(255,255,255,0.02); display: block; }
+
+        .play-overlay {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(15,23,42,0.25);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .card-media-link:hover .play-overlay,
+        .card-media-link:active .play-overlay { opacity: 1; }
+        .play-circle {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .play-circle::after {
+            content: "";
+            border-style: solid;
+            border-width: 9px 0 9px 15px;
+            border-color: transparent transparent transparent #fff;
+            margin-left: 4px;
+        }
+        .open-badge {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(15,23,42,0.6);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #00f2fe;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 5px 10px;
+            border-radius: 999px;
+            pointer-events: none;
+        }
         
         .card-content { padding: 22px; }
         
@@ -101,7 +138,21 @@
         }
 
         .card-title { font-size: 1.35rem; margin-bottom: 8px; color: #fff; font-weight: 700; }
-        .card-desc { color: #b4b6c4; font-size: 0.95rem; line-height: 1.6; }
+        .card-desc { color: #b4b6c4; font-size: 0.95rem; line-height: 1.6; margin-bottom: 14px; }
+
+        .card-link-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: #00f2fe;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 700;
+            border: 1px solid rgba(0,242,254,0.3);
+            padding: 8px 14px;
+            border-radius: 999px;
+            transition: background 0.2s ease;
+        }
+        .card-link-btn:hover { background: rgba(0,242,254,0.1); }
+
         .loading { text-align: center; color: #888; font-size: 1.2rem; }
     </style>
 </head>
@@ -158,18 +209,51 @@
             } catch (e) { loader.innerText = "Connection error."; }
         }
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.innerText = str || "";
+            return div.innerHTML;
+        }
+
         window.renderCards = function(projectsToRender) {
             const grid = document.getElementById('portfolio-grid');
             grid.innerHTML = "";
             projectsToRender.forEach((data) => {
                 const card = document.createElement('div');
                 card.className = 'card';
+
+                const cat = (data.category || '').toLowerCase();
+                const hasLink = (cat === 'website' || cat === 'video') && data.projectLink;
+
+                // Media block: wrapped in a link if it's a website/video with a saved link
+                let mediaHtml = `<img src="${data.imageUrl}" alt="${escapeHtml(data.title)}">`;
+                if (hasLink) {
+                    const badgeText = cat === 'website' ? 'Visit site ↗' : 'Watch video ↗';
+                    const overlay = cat === 'video'
+                        ? `<div class="play-overlay"><div class="play-circle"></div></div>`
+                        : `<div class="play-overlay"></div>`;
+                    mediaHtml = `
+                        <a class="card-media-link" href="${data.projectLink}" target="_blank" rel="noopener noreferrer">
+                            <img src="${data.imageUrl}" alt="${escapeHtml(data.title)}">
+                            ${overlay}
+                            <span class="open-badge">${badgeText}</span>
+                        </a>`;
+                }
+
+                // Below-card button as a second, obvious way to open it
+                let linkBtnHtml = "";
+                if (hasLink) {
+                    const label = cat === 'website' ? 'Open website ↗' : 'Watch video ↗';
+                    linkBtnHtml = `<a class="card-link-btn" href="${data.projectLink}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+                }
+
                 card.innerHTML = `
-                    <img src="${data.imageUrl}" alt="${data.title}">
+                    ${mediaHtml}
                     <div class="card-content">
-                        <div class="card-category">${data.category || 'Work'}</div>
-                        <h3 class="card-title">${data.title}</h3>
-                        <p class="card-desc">${data.description}</p>
+                        <div class="card-category">${escapeHtml(data.category || 'Work')}</div>
+                        <h3 class="card-title">${escapeHtml(data.title)}</h3>
+                        <p class="card-desc">${escapeHtml(data.description)}</p>
+                        ${linkBtnHtml}
                     </div>
                 `;
                 grid.appendChild(card);
@@ -177,7 +261,6 @@
         }
 
         window.filterSelection = function(category) {
-            // Manage Active Button States
             const btns = document.getElementsByClassName("filter-btn");
             for (let i = 0; i < btns.length; i++) {
                 btns[i].classList.remove("active");
