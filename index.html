@@ -16,18 +16,16 @@
         }
 
         body::before {
-            content: "PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION PIXELFUSION";
+            content: "";
             position: fixed;
             inset: 0;
             z-index: -1;
-            font-size: 2.4rem;
-            font-weight: 900;
-            line-height: 1.1;
-            color: #1e1b4b;
-            background: #f1f0fb;
-            overflow: hidden;
-            word-break: break-all;
-            padding: 0;
+            background:
+                radial-gradient(circle at 20% 8%, rgba(99, 102, 241, 0.55), transparent 40%),
+                radial-gradient(circle at 85% 18%, rgba(56, 189, 248, 0.50), transparent 38%),
+                radial-gradient(circle at 15% 55%, rgba(244, 114, 182, 0.45), transparent 42%),
+                radial-gradient(circle at 90% 70%, rgba(250, 204, 21, 0.35), transparent 40%),
+                radial-gradient(circle at 40% 95%, rgba(52, 211, 153, 0.40), transparent 42%);
         }
 
         body.locked { overflow: hidden; height: 100vh; }
@@ -108,7 +106,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
-            background: rgba(255, 255, 255, 0.20);
+            background: rgba(255, 255, 255, 0.45);
             pointer-events: none;
         }
 
