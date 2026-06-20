@@ -6,118 +6,246 @@
     <title>Pixel Fusion Portfolio</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        
-        body { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-            color: #fff; 
-            padding: 20px;
+
+        html, body {
+            background: #ffffff;
+            color: #0f172a;
             min-height: 100vh;
-            background-attachment: fixed;
+            overflow-x: hidden;
         }
 
-        header { text-align: center; padding: 50px 0 30px 0; }
-        
-        h1 { 
-            font-size: 3rem; 
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 25px; 
-            background: linear-gradient(to right, #00f2fe, #4facfe, #00adb5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0px 0px 30px rgba(79, 172, 254, 0.3);
-        }
+        body.locked { overflow: hidden; height: 100vh; }
 
-        .filter-nav {
+        /* ---------- HOME SCREEN ---------- */
+        #home {
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 24px 60px;
         }
 
-        .filter-btn {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.8);
-            padding: 10px 24px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border-radius: 30px;
+        .logo-img {
+            width: 100%;
+            max-width: 260px;
+            height: auto;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 18px;
         }
 
-        .filter-btn:hover, .filter-btn.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-            border-color: #00f2fe;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
-            transform: translateY(-2px);
+        .tagline {
+            text-align: center;
+            color: #475569;
+            font-size: 0.98rem;
+            line-height: 1.55;
+            max-width: 340px;
+            margin-bottom: 38px;
         }
 
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 30px; 
-            max-width: 1200px; 
-            margin: 0 auto; 
+        .btn-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            max-width: 360px;
         }
 
-        .card { 
-            background: rgba(255, 255, 255, 0.03);
+        .cat-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 18px 22px;
+            border-radius: 20px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow:
+                0 1px 1px rgba(15,23,42,0.03),
+                0 8px 24px rgba(15,23,42,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .cat-btn:active {
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.75);
+        }
+
+        .cat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: rgba(15, 23, 42, 0.05);
+            flex-shrink: 0;
+        }
+
+        .cat-arrow {
+            margin-left: auto;
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        /* ---------- LOGO FULLSCREEN VIEWER ---------- */
+        #logo-viewer {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            padding: 30px;
+        }
+        #logo-viewer.open { opacity: 1; pointer-events: all; }
+        #logo-viewer img { width: 100%; max-width: 480px; height: auto; }
+        #logo-viewer .close-x {
+            position: absolute;
+            top: 24px; right: 24px;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: rgba(15,23,42,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            color: #0f172a;
+        }
+
+        /* ---------- CATEGORY SLIDE-UP PANEL ---------- */
+        #panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.18);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #panel-overlay.open { opacity: 1; pointer-events: all; }
+
+        #panel {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            height: 92vh;
+            background: #ffffff;
+            border-radius: 28px 28px 0 0;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 -10px 50px rgba(15,23,42,0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #panel.open { transform: translateY(0); }
+
+        .panel-handle {
+            width: 42px; height: 5px;
+            background: rgba(15,23,42,0.15);
+            border-radius: 999px;
+            margin: 12px auto 6px;
+            flex-shrink: 0;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px 16px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(15,23,42,0.06);
+        }
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .panel-close {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(15,23,42,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        @media (min-width: 640px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .card {
+            background: rgba(255,255,255,0.6);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px; 
-            overflow: hidden; 
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(15,23,42,0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.06);
             position: relative;
         }
 
-        .card:hover { 
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(0, 242, 254, 0.3);
-            box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.15);
-        }
-
         .card-media-link { display: block; position: relative; }
-        .card img { width: 100%; height: 230px; object-fit: cover; background: rgba(255,255,255,0.02); display: block; }
+        .card img { width: 100%; height: 210px; object-fit: cover; display: block; background: #f1f5f9; }
 
         .play-overlay {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
-            background: rgba(15,23,42,0.25);
+            background: rgba(15,23,42,0.15);
             opacity: 0;
-            transition: opacity 0.25s ease;
+            transition: opacity 0.2s ease;
         }
-        .card-media-link:hover .play-overlay,
         .card-media-link:active .play-overlay { opacity: 1; }
         .play-circle {
-            width: 56px; height: 56px; border-radius: 50%;
-            background: rgba(255,255,255,0.15);
+            width: 52px; height: 52px; border-radius: 50%;
+            background: rgba(255,255,255,0.5);
             backdrop-filter: blur(6px);
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.6);
             display: flex; align-items: center; justify-content: center;
         }
         .play-circle::after {
             content: "";
             border-style: solid;
             border-width: 9px 0 9px 15px;
-            border-color: transparent transparent transparent #fff;
+            border-color: transparent transparent transparent #0f172a;
             margin-left: 4px;
         }
         .open-badge {
             position: absolute; top: 12px; right: 12px;
-            background: rgba(15,23,42,0.6);
+            background: rgba(255,255,255,0.75);
             backdrop-filter: blur(6px);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: #00f2fe;
-            font-size: 0.7rem;
+            border: 1px solid rgba(15,23,42,0.08);
+            color: #0f172a;
+            font-size: 0.68rem;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
@@ -125,53 +253,80 @@
             border-radius: 999px;
             pointer-events: none;
         }
-        
-        .card-content { padding: 22px; }
-        
-        .card-category {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #00f2fe;
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
 
-        .card-title { font-size: 1.35rem; margin-bottom: 8px; color: #fff; font-weight: 700; }
-        .card-desc { color: #b4b6c4; font-size: 0.95rem; line-height: 1.6; margin-bottom: 14px; }
+        .card-content { padding: 18px 20px 22px; }
+        .card-title { font-size: 1.15rem; margin-bottom: 6px; color: #0f172a; font-weight: 700; }
+        .card-desc { color: #64748b; font-size: 0.9rem; line-height: 1.55; margin-bottom: 12px; }
 
         .card-link-btn {
             display: inline-flex; align-items: center; gap: 6px;
-            color: #00f2fe;
+            color: #0f172a;
             text-decoration: none;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 700;
-            border: 1px solid rgba(0,242,254,0.3);
+            border: 1px solid rgba(15,23,42,0.15);
             padding: 8px 14px;
             border-radius: 999px;
-            transition: background 0.2s ease;
+            background: rgba(15,23,42,0.03);
         }
-        .card-link-btn:hover { background: rgba(0,242,254,0.1); }
 
-        .loading { text-align: center; color: #888; font-size: 1.2rem; }
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            padding: 60px 20px;
+            font-size: 0.95rem;
+        }
+
+        .loading { text-align: center; color: #94a3b8; padding: 40px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Pixel Fusion</h1>
-        
-        <div class="filter-nav">
-            <button class="filter-btn active" onclick="filterSelection('all')">✨ All Work</button>
-            <button class="filter-btn" onclick="filterSelection('logo')">🎨 Logo</button>
-            <button class="filter-btn" onclick="filterSelection('thumbnail')">🖼️ Thumbnail</button>
-            <button class="filter-btn" onclick="filterSelection('video')">🎬 Video</button>
-            <button class="filter-btn" onclick="filterSelection('website')">💻 Website</button>
-        </div>
-    </header>
+    <!-- HOME -->
+    <div id="home">
+        <img class="logo-img" id="logo-trigger"
+             src="https://i.ibb.co/GfqLZtsc/9-F595-B04-C4-EC-4-A73-8-B77-60-F5-C603-B03-F.png"
+             alt="Pixel Fusion logo">
 
-    <div class="loading" id="loader">Syncing showcase layout...</div>
-    <div class="grid" id="portfolio-grid"></div>
+        <p class="tagline">
+            One creative studio, three disciplines — logos, websites, and video, all designed and edited by hand.<br>
+            Tap a category below to see real client work.
+        </p>
+
+        <div class="btn-stack">
+            <button class="cat-btn" data-cat="logo">
+                <span class="cat-icon">🎨</span> Logo <span class="cat-arrow">→</span>
+            </button>
+            <button class="cat-btn" data-cat="thumbnail">
+                <span class="cat-icon">🖼️</span> Thumbnail <span class="cat-arrow">→</span>
+            </button>
+            <button class="cat-btn" data-cat="website">
+                <span class="cat-icon">💻</span> Website <span class="cat-arrow">→</span>
+            </button>
+            <button class="cat-btn" data-cat="video">
+                <span class="cat-icon">🎬</span> Video <span class="cat-arrow">→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- LOGO FULLSCREEN VIEWER -->
+    <div id="logo-viewer">
+        <div class="close-x" id="logo-viewer-close">✕</div>
+        <img src="https://i.ibb.co/GfqLZtsc/9-F595-B04-C4-EC-4-A73-8-B77-60-F5-C603-B03-F.png" alt="Pixel Fusion logo full size">
+    </div>
+
+    <!-- SLIDE-UP CATEGORY PANEL -->
+    <div id="panel-overlay"></div>
+    <div id="panel">
+        <div class="panel-handle"></div>
+        <div class="panel-header">
+            <div class="panel-title"><span id="panel-icon"></span><span id="panel-title-text"></span></div>
+            <div class="panel-close" id="panel-close">✕</div>
+        </div>
+        <div class="panel-body" id="panel-body">
+            <div class="loading">Loading…</div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -187,27 +342,14 @@
         const db = getFirestore(app);
 
         let allProjects = [];
+        let loaded = false;
 
-        async function loadPortfolio() {
-            const grid = document.getElementById('portfolio-grid');
-            const loader = document.getElementById('loader');
-            try {
-                const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
-                loader.style.display = 'none';
-                
-                if(snap.empty) {
-                    grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#666;">No designs uploaded yet.</p>';
-                    return;
-                }
-
-                snap.forEach((doc) => {
-                    allProjects.push({ id: doc.id, ...doc.data() });
-                });
-
-                renderCards(allProjects);
-            } catch (e) { loader.innerText = "Connection error."; }
-        }
+        const catMeta = {
+            logo: { label: "Logo", icon: "🎨" },
+            thumbnail: { label: "Thumbnail", icon: "🖼️" },
+            website: { label: "Website", icon: "💻" },
+            video: { label: "Video", icon: "🎬" }
+        };
 
         function escapeHtml(str) {
             const div = document.createElement('div');
@@ -215,23 +357,34 @@
             return div.innerHTML;
         }
 
-        window.renderCards = function(projectsToRender) {
-            const grid = document.getElementById('portfolio-grid');
-            grid.innerHTML = "";
-            projectsToRender.forEach((data) => {
+        async function loadAllProjects() {
+            if (loaded) return allProjects;
+            const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+            const snap = await getDocs(q);
+            allProjects = [];
+            snap.forEach((doc) => allProjects.push({ id: doc.id, ...doc.data() }));
+            loaded = true;
+            return allProjects;
+        }
+
+        function renderCards(items, cat) {
+            const body = document.getElementById('panel-body');
+            if (items.length === 0) {
+                body.innerHTML = `<div class="empty-state">No ${catMeta[cat].label.toLowerCase()} work uploaded yet — check back soon.</div>`;
+                return;
+            }
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            items.forEach((data) => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                const c = (data.category || '').toLowerCase();
+                const hasLink = (c === 'website' || c === 'video') && data.projectLink;
 
-                const cat = (data.category || '').toLowerCase();
-                const hasLink = (cat === 'website' || cat === 'video') && data.projectLink;
-
-                // Media block: wrapped in a link if it's a website/video with a saved link
                 let mediaHtml = `<img src="${data.imageUrl}" alt="${escapeHtml(data.title)}">`;
                 if (hasLink) {
-                    const badgeText = cat === 'website' ? 'Visit site ↗' : 'Watch video ↗';
-                    const overlay = cat === 'video'
-                        ? `<div class="play-overlay"><div class="play-circle"></div></div>`
-                        : `<div class="play-overlay"></div>`;
+                    const badgeText = c === 'website' ? 'Visit site ↗' : 'Watch video ↗';
+                    const overlay = c === 'video' ? `<div class="play-overlay"><div class="play-circle"></div></div>` : `<div class="play-overlay"></div>`;
                     mediaHtml = `
                         <a class="card-media-link" href="${data.projectLink}" target="_blank" rel="noopener noreferrer">
                             <img src="${data.imageUrl}" alt="${escapeHtml(data.title)}">
@@ -240,17 +393,15 @@
                         </a>`;
                 }
 
-                // Below-card button as a second, obvious way to open it
                 let linkBtnHtml = "";
                 if (hasLink) {
-                    const label = cat === 'website' ? 'Open website ↗' : 'Watch video ↗';
+                    const label = c === 'website' ? 'Open website ↗' : 'Watch video ↗';
                     linkBtnHtml = `<a class="card-link-btn" href="${data.projectLink}" target="_blank" rel="noopener noreferrer">${label}</a>`;
                 }
 
                 card.innerHTML = `
                     ${mediaHtml}
                     <div class="card-content">
-                        <div class="card-category">${escapeHtml(data.category || 'Work')}</div>
                         <h3 class="card-title">${escapeHtml(data.title)}</h3>
                         <p class="card-desc">${escapeHtml(data.description)}</p>
                         ${linkBtnHtml}
@@ -258,33 +409,46 @@
                 `;
                 grid.appendChild(card);
             });
+            body.innerHTML = "";
+            body.appendChild(grid);
         }
 
-        window.filterSelection = function(category) {
-            const btns = document.getElementsByClassName("filter-btn");
-            for (let i = 0; i < btns.length; i++) {
-                btns[i].classList.remove("active");
-                if(btns[i].innerText.toLowerCase().includes(category)) {
-                    btns[i].classList.add("active");
-                } else if (category === 'all' && i === 0) {
-                    btns[i].classList.add("active");
-                }
-            }
+        async function openPanel(cat) {
+            const meta = catMeta[cat];
+            document.getElementById('panel-icon').innerText = meta.icon;
+            document.getElementById('panel-title-text').innerText = meta.label;
+            document.getElementById('panel-body').innerHTML = '<div class="loading">Loading…</div>';
 
-            if(category === 'all') {
-                renderCards(allProjects);
-            } else {
-                const filtered = allProjects.filter(p => p.category && p.category.toLowerCase() === category);
-                const grid = document.getElementById('portfolio-grid');
-                if(filtered.length === 0) {
-                    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#888; padding:40px;">No items in ${category} category yet.</p>`;
-                } else {
-                    renderCards(filtered);
-                }
+            document.getElementById('panel-overlay').classList.add('open');
+            document.getElementById('panel').classList.add('open');
+            document.body.classList.add('locked');
+
+            try {
+                const all = await loadAllProjects();
+                const filtered = all.filter(p => (p.category || '').toLowerCase() === cat);
+                renderCards(filtered, cat);
+            } catch (e) {
+                document.getElementById('panel-body').innerHTML = '<div class="empty-state">Could not load work right now. Try again shortly.</div>';
             }
         }
 
-        loadPortfolio();
+        function closePanel() {
+            document.getElementById('panel-overlay').classList.remove('open');
+            document.getElementById('panel').classList.remove('open');
+            document.body.classList.remove('locked');
+        }
+
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.addEventListener('click', () => openPanel(btn.getAttribute('data-cat')));
+        });
+        document.getElementById('panel-overlay').addEventListener('click', closePanel);
+        document.getElementById('panel-close').addEventListener('click', closePanel);
+
+        // Logo fullscreen viewer
+        const viewer = document.getElementById('logo-viewer');
+        document.getElementById('logo-trigger').addEventListener('click', () => viewer.classList.add('open'));
+        document.getElementById('logo-viewer-close').addEventListener('click', () => viewer.classList.remove('open'));
+        viewer.addEventListener('click', (e) => { if (e.target === viewer) viewer.classList.remove('open'); });
     </script>
 </body>
 </html>
