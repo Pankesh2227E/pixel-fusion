@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Fusion Panel</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background: #0f172a; color: #fff; padding: 15px; }
+        .container { max-width: 550px; margin: 20px auto; background: #1e293b; padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        h2 { margin-bottom: 20px; text-align: center; color: #00f2fe; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #cbd5e1; }
+        input, textarea, select { width: 100%; padding: 12px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 1rem; color: #fff; }
+        button { width: 100%; padding: 12px; background: linear-gradient(to right, #00f2fe, #4facfe); color: #0f172a; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .hidden { display: none !important; }
+        .project-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; }
+        .project-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 6px; }
+        .btn-delete { background: #ef4444; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; margin: 0; }
+        .status-msg { margin: 10px 0; color: #38bdf8; text-align: center; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container" id="login-box">
+        <h2>Pixel Fusion Access</h2>
+        <div class="form-group"><label>Admin Email</label><input type="email" id="login-email"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-password"></div>
+        <button id="btn-login">Verify Identity</button>
+        <div id="login-error" style="color:#ef4444; text-align:center; margin-top:10px;"></div>
+    </div>
+
+    <div class="container hidden" id="admin-box">
+        <h2>Control Panel</h2>
+        <p style="text-align: center; color:#94a3b8; margin-bottom:20px;">Logged in | <a href="#" id="link-logout" style="color:#ef4444; text-decoration:none;">Logout</a></p>
+        <hr style="border-color:#334155; margin-bottom:20px;">
+        
+        <h3>Publish Content</h3>
+        <div class="status-msg" id="status-text"></div>
+        <div class="form-group"><label>Title</label><input type="text" id="proj-title"></div>
+        <div class="form-group"><label>Description</label><textarea id="proj-desc" rows="3"></textarea></div>
+        
+        <div class="form-group">
+            <label>Content Placement Category</label>
+            <select id="proj-category">
+                <option value="Logo">Logo</option>
+                <option value="Thumbnail">Thumbnail</option>
+                <option value="Video">Video</option>
+                <option value="Website">Website</option>
+            </select>
+        </div>
+
+        <div class="form-group"><label>ImgBB Direct Link Image URL</label><input type="text" id="proj-url" placeholder="https://i.ibb.co/.../img.png"></div>
+        <button id="btn-submit">Push To Live Site</button>
+        
+        <hr style="border-color:#334155; margin: 30px 0 20px 0;">
+        <h3>Current Inventory</h3>
+        <div id="current-list"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyADd_THieNiwl-aRIiFpURkg0inlwZPQjY",
+            authDomain: "pixel-fusion-c7400.firebaseapp.com",
+            projectId: "pixel-fusion-c7400",
+            appId: "1:738589690133:web:744ad4c309e2788303c11c"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginBox = document.getElementById('login-box');
+        const adminBox = document.getElementById('admin-box');
+        const currentList = document.getElementById('current-list');
+        const statusText = document.getElementById('status-text');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { loginBox.classList.add('hidden'); adminBox.classList.remove('hidden'); fetchAdminProjects(); }
+            else { loginBox.classList.remove('hidden'); adminBox.classList.add('hidden'); }
+        });
+
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); }
+            catch (err) { document.getElementById('login-error').innerText = "Access Denied."; }
+        });
+
+        document.getElementById('link-logout').addEventListener('click', () => signOut(auth));
+
+        async function fetchAdminProjects() {
+            currentList.innerHTML = "";
+            const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+            const snap = await getDocs(q);
+            snap.forEach((docSnap) => {
+                const item = docSnap.data();
+                const row = document.createElement('div');
+                row.className = 'project-item';
+                row.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><img src="${item.imageUrl}"><span><strong>${item.title}</strong> (${item.category || 'General'})</span></div><button class="btn-delete" data-id="${docSnap.id}">Remove</button>`;
+                currentList.appendChild(row);
+            });
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    if(!confirm("Delete item?")) return;
+                    await deleteDoc(doc(db, "projects", e.target.getAttribute('data-id')));
+                    fetchAdminProjects();
+                });
+            });
+        }
+
+        document.getElementById('btn-submit').addEventListener('click', async () => {
+            const title = document.getElementById('proj-title').value;
+            const desc = document.getElementById('proj-desc').value;
+            const cat = document.getElementById('proj-category').value;
+            const url = document.getElementById('proj-url').value;
+            if(!title || !desc || !url) return alert("All text spaces required.");
+            
+            statusText.innerText = "Syncing with cloud database...";
+            await addDoc(collection(db, "projects"), { title, description: desc, category: cat, imageUrl: url, createdAt: serverTimestamp() });
+            statusText.innerText = "Inventory item uploaded successfully!";
+            document.getElementById('proj-title').value = ""; document.getElementById('proj-desc').value = ""; document.getElementById('proj-url').value = "";
+            fetchAdminProjects();
+        });
+    </script>
+</body>
+</html>
