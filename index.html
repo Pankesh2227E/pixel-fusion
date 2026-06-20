@@ -146,8 +146,11 @@
             position: fixed;
             left: 0; right: 0; bottom: 0;
             height: 92vh;
-            background: #ffffff;
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
             border-radius: 28px 28px 0 0;
+            border-top: 1px solid rgba(255,255,255,0.6);
             z-index: 100;
             transform: translateY(100%);
             transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -209,18 +212,21 @@
         }
 
         .card {
-            background: rgba(255,255,255,0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(15,23,42,0.08);
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.6);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+            box-shadow: 0 8px 24px rgba(15,23,42,0.08);
             position: relative;
         }
 
         .card-media-link { display: block; position: relative; }
         .card img { width: 100%; height: 210px; object-fit: cover; display: block; background: #f1f5f9; }
+
+        /* Logo cards show the full image uncropped instead of a fixed-height crop */
+        .card.logo-card img { height: auto; max-height: none; object-fit: contain; background: #ffffff; }
 
         .play-overlay {
             position: absolute; inset: 0;
@@ -383,7 +389,7 @@
             grid.className = 'grid';
             items.forEach((data) => {
                 const card = document.createElement('div');
-                card.className = 'card';
+                card.className = cat === 'logo' ? 'card logo-card' : 'card';
                 const c = (data.category || '').toLowerCase();
                 const hasLink = (c === 'website' || c === 'video') && data.projectLink;
 
