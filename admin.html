@@ -12,12 +12,14 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #cbd5e1; }
         input, textarea, select { width: 100%; padding: 12px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 1rem; color: #fff; }
+        .hint { font-size: 0.78rem; color: #64748b; margin-top: 5px; }
         button { width: 100%; padding: 12px; background: linear-gradient(to right, #00f2fe, #4facfe); color: #0f172a; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; margin-top: 10px; cursor: pointer; }
         .hidden { display: none !important; }
-        .project-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; }
-        .project-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 6px; }
-        .btn-delete { background: #ef4444; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; margin: 0; }
+        .project-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; gap: 10px; }
+        .project-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+        .btn-delete { background: #ef4444; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; margin: 0; flex-shrink: 0; }
         .status-msg { margin: 10px 0; color: #38bdf8; text-align: center; font-weight: 600; }
+        #link-field-wrap.hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -50,6 +52,13 @@
         </div>
 
         <div class="form-group"><label>ImgBB Direct Link Image URL</label><input type="text" id="proj-url" placeholder="https://i.ibb.co/.../img.png"></div>
+
+        <div class="form-group" id="link-field-wrap">
+            <label id="link-field-label">Project Link</label>
+            <input type="text" id="proj-link" placeholder="https://...">
+            <p class="hint" id="link-field-hint">For Website: paste the live site URL. For Video: paste the YouTube / Instagram / Drive link.</p>
+        </div>
+
         <button id="btn-submit">Push To Live Site</button>
         
         <hr style="border-color:#334155; margin: 30px 0 20px 0;">
@@ -76,6 +85,30 @@
         const adminBox = document.getElementById('admin-box');
         const currentList = document.getElementById('current-list');
         const statusText = document.getElementById('status-text');
+        const categorySelect = document.getElementById('proj-category');
+        const linkFieldWrap = document.getElementById('link-field-wrap');
+        const linkFieldLabel = document.getElementById('link-field-label');
+        const linkFieldHint = document.getElementById('link-field-hint');
+        const linkInput = document.getElementById('proj-link');
+
+        // Show/hide and relabel the link field based on category
+        function updateLinkField() {
+            const cat = categorySelect.value;
+            if (cat === 'Website' || cat === 'Video') {
+                linkFieldWrap.classList.remove('hidden');
+                if (cat === 'Website') {
+                    linkFieldLabel.innerText = 'Live Website URL';
+                    linkFieldHint.innerText = 'Paste the full live site link, e.g. https://yoursite.netlify.app';
+                } else {
+                    linkFieldLabel.innerText = 'Video Link';
+                    linkFieldHint.innerText = 'Paste the YouTube, Instagram, or Drive link to the video.';
+                }
+            } else {
+                linkFieldWrap.classList.add('hidden');
+            }
+        }
+        categorySelect.addEventListener('change', updateLinkField);
+        updateLinkField();
 
         onAuthStateChanged(auth, (user) => {
             if (user) { loginBox.classList.add('hidden'); adminBox.classList.remove('hidden'); fetchAdminProjects(); }
@@ -97,7 +130,7 @@
                 const item = docSnap.data();
                 const row = document.createElement('div');
                 row.className = 'project-item';
-                row.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><img src="${item.imageUrl}"><span><strong>${item.title}</strong> (${item.category || 'General'})</span></div><button class="btn-delete" data-id="${docSnap.id}">Remove</button>`;
+                row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; min-width:0;"><img src="${item.imageUrl}"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>${item.title}</strong> (${item.category || 'General'})</span></div><button class="btn-delete" data-id="${docSnap.id}">Remove</button>`;
                 currentList.appendChild(row);
             });
             document.querySelectorAll('.btn-delete').forEach(btn => {
@@ -114,12 +147,27 @@
             const desc = document.getElementById('proj-desc').value;
             const cat = document.getElementById('proj-category').value;
             const url = document.getElementById('proj-url').value;
+            const link = linkInput.value.trim();
+
             if(!title || !desc || !url) return alert("All text spaces required.");
+            if((cat === 'Website' || cat === 'Video') && !link) {
+                return alert(cat === 'Website' ? "Please paste the live website URL." : "Please paste the video link.");
+            }
             
             statusText.innerText = "Syncing with cloud database...";
-            await addDoc(collection(db, "projects"), { title, description: desc, category: cat, imageUrl: url, createdAt: serverTimestamp() });
+            await addDoc(collection(db, "projects"), {
+                title,
+                description: desc,
+                category: cat,
+                imageUrl: url,
+                projectLink: link || null,
+                createdAt: serverTimestamp()
+            });
             statusText.innerText = "Inventory item uploaded successfully!";
-            document.getElementById('proj-title').value = ""; document.getElementById('proj-desc').value = ""; document.getElementById('proj-url').value = "";
+            document.getElementById('proj-title').value = "";
+            document.getElementById('proj-desc').value = "";
+            document.getElementById('proj-url').value = "";
+            linkInput.value = "";
             fetchAdminProjects();
         });
     </script>
